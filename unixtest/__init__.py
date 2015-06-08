@@ -1,20 +1,51 @@
 from argparse import ArgumentParser
 import os
 
+
+class TestCase(object):
+
+    def __init__(self):
+        self.tests = list()
+
+    def add_test(self, command, name):
+        self.tests.append(Test(command, name))
+
+    def finish(self):
+        failures = list()
+        for test in self.tests:
+            failures.extend(test.failures)
+        if len(failures) == 0:
+            print "\033[32m%s\033[m" % test.name
+        else:
+            print "\033[31m%s\033[m" % test.name
+            for expected, got in failures:
+                print "    Expected:"
+                print "        %s" % expected
+                print "    Got:"
+                print "        %s" % got
+
+
+class Test(object):
+
+    def __init__(self, command, name):
+        self.command = os.popen(command)
+        self.name = name
+        self.failures = list()
+
+    def handle_line(self, line):
+        output = self.command.read(len(line))
+        if line != output:
+            self.failures.append([line, output])
+
+
 def test_file(path):
+    test_case = TestCase()
     for line in open(path).readlines():
         if line.startswith("$ "):
-            command = os.popen(line[2:])
+            test_case.add_test(line[2:], path)
         else:
-            output = command.read(len(line))
-            if line == output:
-                print "\033[32m%s\033[m" % path
-            else:
-                print "\033[31m%s\033[m" % path
-                print "    Expected:"
-                print "        %s" % line
-                print "    Got:"
-                print "        %s" % output
+            test_case.tests[-1].handle_line(line)
+    test_case.finish()
 
 def test_dir(path):
     for child in os.listdir(path):

@@ -1,2 +1,4 @@
 $ echo "Unix philosophy!"
 Unix philosophy!
+$ echo "A cool way to develop."
+A cool way to develop.
