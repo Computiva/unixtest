@@ -1,6 +1,9 @@
 from argparse import ArgumentParser
 import os
 
+OUTPUT = 0
+INPUT = 1
+
 
 class TestCase(object):
 
@@ -13,6 +16,7 @@ class TestCase(object):
     def finish(self):
         failures = list()
         for test in self.tests:
+            test.finish()
             failures.extend(test.failures)
         if len(failures) == 0:
             print "\033[32m%s\033[m" % test.name
@@ -28,14 +32,36 @@ class TestCase(object):
 class Test(object):
 
     def __init__(self, command, name):
-        self.command = os.popen(command)
+        self.command_in, self.command_out = os.popen2(command)
         self.name = name
         self.failures = list()
+        self.io = OUTPUT
+        self.expected_output = list()
+
+    def _parts(self, line):
+        part = str()
+        for char in line:
+            if char == "|":
+                yield part
+                self.io = OUTPUT if self.io == INPUT else INPUT
+                part = str()
+            else:
+                part += char
+        yield part
 
     def handle_line(self, line):
-        output = self.command.read(len(line))
-        if line != output:
-            self.failures.append([line, output])
+        for part in self._parts(line):
+            if self.io == OUTPUT:
+                self.expected_output.append(part)
+            if self.io == INPUT:
+                self.command_in.write(part)
+
+    def finish(self):
+        self.command_in.close()
+        for expected_output in self.expected_output:
+            output = self.command_out.read(len(expected_output))
+            if output != expected_output:
+                self.failures.append([expected_output, output])
 
 
 def test_file(path):
