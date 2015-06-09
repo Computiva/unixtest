@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = "unixtest",
-    version = "0.0",
+    version = "0.1.0",
     author = "Ângelo Nuffer",
     author_email = "angelonuffer@gmail.com",
     packages = find_packages(),
