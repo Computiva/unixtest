@@ -1,0 +1,6 @@
+$ echo "test1" > /tmp/unixtest_test
+$ cat /tmp/unixtest_test
+test1
+$ echo "test2" > /tmp/unixtest_test
+$ cat /tmp/unixtest_test
+test2

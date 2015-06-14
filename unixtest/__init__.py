@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+import subprocess
 import os
 
 OUTPUT = 0
@@ -11,12 +12,13 @@ class TestCase(object):
         self.tests = list()
 
     def add_test(self, command, name):
+        if len(self.tests) > 0:
+            self.tests[-1].finish()
         self.tests.append(Test(command, name))
 
     def finish(self):
         failures = list()
         for test in self.tests:
-            test.finish()
             failures.extend(test.failures)
         if len(failures) == 0:
             print "\033[32m%s\033[m" % test.name
@@ -32,7 +34,9 @@ class TestCase(object):
 class Test(object):
 
     def __init__(self, command, name):
-        self.command_in, self.command_out = os.popen2(command)
+        self.process = subprocess.Popen(command, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+        self.command_in = self.process.stdin
+        self.command_out = self.process.stdout
         self.name = name
         self.failures = list()
         self.io = OUTPUT
@@ -62,6 +66,7 @@ class Test(object):
             output = self.command_out.read(len(expected_output))
             if output != expected_output:
                 self.failures.append([expected_output, output])
+        self.process.wait()
 
 
 def test_file(path):
