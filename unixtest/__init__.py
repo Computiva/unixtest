@@ -25,10 +25,8 @@ class TestCase(object):
         else:
             print "\033[31m%s\033[m" % test.name
             for expected, got in failures:
-                print "    Expected:"
-                print "        %s" % expected
-                print "    Got:"
-                print "        %s" % got
+                print "    Expected: %s" % repr(expected)
+                print "    Got:      %s" % repr(got)
 
 
 class Test(object):
